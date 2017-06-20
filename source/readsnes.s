@@ -1,5 +1,6 @@
 /**
 	contains the draw functions
+draw
 */
 
 .globl InitGPIO
@@ -9,18 +10,25 @@ InitGPIO:
 	ldr	r0, =0x3F200000			//Initialize Latch
 	mov	r1,	#27
 	mov r2, #0b001
+        push    {lr}
 	bl	init_GPIO
-	
+        pop     {lr}	
+
 	ldr	r0, =0x3F200004			//Initialize Data
 	mov	r1,	#0
 	mov r2, #0b000
+	push    {lr}
 	bl	init_GPIO
+        pop     {lr}	
 	
 	ldr	r0, =0x3F200004			//Initializa Clock
 	mov	r1,	#3
 	mov r2, #0b001
+	push    {lr}
 	bl	init_GPIO
+        pop     {lr}	
 
+        mov     pc, lr
 
 
 init_GPIO:						//param: r0 = address, r1 = GPIO line, r2 = func select value
@@ -36,6 +44,9 @@ init_GPIO:						//param: r0 = address, r1 = GPIO line, r2 = func select value
 	str r4, [r0]
 	pop {r4, r5}
 	mov pc, lr
+
+
+
 
 .globl readSNES	
 readSNES:						//reads controller input, no param
@@ -110,6 +121,7 @@ read_Pin:						//reads a bit(1 or 0) from a pin
 	moveq r0, #0
 	movne r0, #1
 	mov	pc, lr
+
 	
 wait:							//waits for selected amount of time
 	ldr	r0, =0x3F003004			//param: r2 = # of nanoseconds waited

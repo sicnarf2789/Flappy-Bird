@@ -18,7 +18,7 @@ drawImageLoop:
 	mov	r0,	r5							//passing x for ro which is used by the Draw pixel function 
 	mov	r1,	r6							//passing y for r1 which is used by the Draw pixel formula 
 	
-	ldrh r2, [r7],#2					//setting pixel color by loading it from the data section. We load hald word
+	ldrh r2, [r7],#2					//setting pixel color by loading it from the data section. We load half word
 
 	bl	DrawPixel
 	add	r5,	#1			//increment x position
@@ -60,19 +60,55 @@ DrawPixel:
 
 .globl clearScreen
 clearScreen:
-	mov	r4,	#0			//x value
-	mov	r5,	#0			//Y value
+
+        push {r5, r6, r7, r8, r9, r10, lr}		//r2, r3 = image width and height
+	mov	r5,	r0							//r4 = address of image
+	mov	r6,	r1
+	mov	r8,	r2
+        mov     r10,    r5
+	mov	r9,	r3
+	add     r8,     r5
+	add     r9,     r6
+	
+clearImageLoop:
+	mov	r0,	r5							//passing x for ro which is used by the Draw pixel function 
+	mov	r1,	r6							//passing y for r1 which is used by the Draw pixel formula 
+	mov     r2,     #0					                //setting pixel color by loading it from the data section. We load half word
+
+	bl	DrawPixel
+	add	r5,	#1			//increment x position
+	cmp	r5,	r8			//compare with image with
+	blt	clearImageLoop
+	//sub r5, r8			//reset x
+        mov     r5,     r10	
+        add	r6,	#1			//increment Y
+	cmp	r6,	r9			//compare y with image height
+	blt	clearImageLoop
+	pop {r5, r6, r7, r8, r9, r10, pc}
+    
+
+
+
+
+
+
+
+
+/**
+        push {r4, r5, r6, r7, r8, lr}    
+	mov	r4,	r0			//x value
+	mov	r5,	r1			//Y value
 	mov	r6,	#0			//black color
-	ldr	r7,	=1023			//Width of screen
-	ldr	r8,	=767			//Height of the screen
+	mov	r7,	r2			//Width of screen
+	mov	r8,	r3			//Height of the screen
 	
 Looping:
 	mov	r0,	r4			//Setting x 
 	mov	r1,	r5			//Setting y
 	mov	r2,	r6			//setting pixel color
-	push {lr}
+	push    {lr}
 	bl	DrawPixel
-	pop {lr}
+	pop     {lr}
 	add	r4,	#1			//increment x by 1
 	cmp	r4,	r7			//compare with width
 	blt	Looping
@@ -80,5 +116,6 @@ Looping:
 	add	r5,	#1			//increment Y by 1
 	cmp	r5,	r8			//compare with height
 	blt	Looping
-	
-	mov	pc,	lr			//return
+	push {r4, r5, r6, r7, r8, lr}    
+	bx 
+*/

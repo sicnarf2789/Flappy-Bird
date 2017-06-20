@@ -1,3 +1,8 @@
+/**
+main function
+
+*/
+
 .section .init
 .globl _start
 
@@ -7,109 +12,90 @@ _start:
 .section .text
 
 main:
-    mov sp, #0x8000
+        mov sp, #0x8000
 	bl EnableJTAG
 	bl InitFrameBuffer
-	bl InitGPIO
+
+
+drawMenu:
 	
-drawMainMenu:
 	mov r0, #0
 	mov r1, #0
-	mov r2, #1023
-	mov r3, #763
+	mov r2, #1024
+	mov r3, #768
 	ldr r4, =flappyLogo
-	bl drawPicture
-	
-	
-waitInput:						//waits until the user presses a button
-	
-	ldr r5, =0xFFFF	
-	bl readSNES
-	cmp r2, r5
-	beq waitInput
-	
-checkInput:
-	
-	push {r4, r5, lr}		//no return values
-	mov r4, r2
-	ldr r5, =0xEFFF
-	cmp r4, r5				//checks for start button. Terminates immediately if pressed
-	bne waitInput
+	bl drawImage
 
-drawGame:
 
-	mov r0, #0
-	mov r1, #0
-	mov r2, #1023
-	mov r3, #763
-	ldr r4, =pipesBackground
-	bl drawPicture
+readButtons:
 
-	pop {r4, r5, lr}
-	mov pc, lr
-		
-gameControls:
+        mov             r8, #0                  // toggles game mode on/off
 
-	push {r4, r5, r6}		//no return values
-	mov   r6, #0			//set the game to play
+waitInput:					//waits until the user presses a button
 	
-waitGameInput:						//waits until the user presses a button
-	
-	
-	
-	ldr r5, =0xFFFF	
-	bl readSNES
-	cmp r2, r5
-	beq waitGameInput
-	
-checkGameInput:
-	
-	
-	mov r4, r2
-	
-	
-	cmp r4, =0x3FEF			//checks for start button. Terminates immediately if pressed
-	beq waitGameInput
+	ldr             r5, =0xFFFF	
+	bl              readSNES
+	cmp             r2, r5
+	beq             waitInput
 
-	cmp r4, =0xEFFF			//checks for start button. Terminates immediately if pressed
-	beq pauseMenu
-	
-dPadUP:	
-	
-	//code for up
-	
-pauseMenu:	//code for pause menu
-	
-	cmp r6, #0
-	bne unpause
-	
-	mov r0, #0
-	mov r1, #0
-	mov r2, #1023
-	mov r3, #763
-	ldr r4, =pauseBackground
-	bl drawPicture
-	
-	mov r6, #1			//set game to pause
-	
-	b waitGameInput
-	
+            
+	ldr		r6, =0xEFFF		// mask for the start button
+	ldr		r7, =0x3FEF		// mask for the UP button
+	cmp		r2, r6			// compare if user pressed Start
+	beq		pressedStart
+	cmp		r2, r7			// compare if user pressed UP
+	beq		pressedUp
 
-unpause:
+	b		readButtons		// branch back and wait for user to press A
 	
+pressedStart:
+	cmp		r8, #0			// cursor points to start game flag
+	beq		startGame		// starts game is user pressed A on start game option
+	bne		pauseGame		// quits game (clears screen to black) if user pressed A on quit game option
+
+pressedUp:
+        
+        //code for moving bird        
+     
+
+	b		quit		// branch back to read snes controller
+
+
+startGame:
+
+
+	mov             r0, #0
+	mov             r1, #0
+	mov             r2, #1024
+	mov             r3, #768
+	ldr             r4, =pipesBackground
+	bl              drawImage
+        mov             r8, #1  
+        
+	b		waitInput		// branch back to read snes controller
+
+pauseGame:
 	
-	//clear pause background
-	
-	mov r6, #0			//set game to play
-	b waitGameInput
-	
-	
-	pop {r4, r5}
-	mov pc, lr
-	
+	mov             r0, #0
+	mov             r1, #0
+	mov             r2, #1024
+	mov             r3, #768
+	ldr             r4, =pauseBackground
+	bl              drawImage
+        mov             r8, #0 
+        
+	b		waitInput		
+
+
+quit:
+
+        bl              clearScreen
+
+.globl haltLoop$
 haltLoop$:
 	b		haltLoop$
+
 	
 
 
-.section .data
+	
